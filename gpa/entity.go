@@ -121,7 +121,7 @@ func (e Entity[entityType]) getPagQuery(p *Pagination) string {
 	if p != nil && p.Limit != 0 {
 		pagQuery += " LIMIT " + strconv.FormatInt(p.Limit, 10)
 	}
-	if p != nil && p.Limit != 0 {
+	if p != nil && p.Offset != 0 {
 		pagQuery += " OFFSET " + strconv.FormatInt(p.Offset, 10)
 	}
 	return pagQuery

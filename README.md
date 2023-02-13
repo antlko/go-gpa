@@ -61,6 +61,9 @@ id, err := gpa.From[User]().Insert(User{
     Name: "John",
 })
 
+// Update data in DB
+err := gpa.From[User]().Update(User{ID: id, Name: "Doe"})
+
 // Find all Data from DB
 users, err := gpa.From[User]().FindAll()
 

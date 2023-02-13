@@ -89,6 +89,14 @@ func main() {
 		panic(err)
 	}
 
+	// Update entity
+	if err := gpa.From[User]().Update(User{
+		ID:   id,
+		Name: "Doe",
+	}); err != nil {
+		panic(err)
+	}
+
 	// Find all Data from DB
 	users, err := gpa.From[User]().FindAll()
 	if err != nil && err != sql.ErrNoRows {

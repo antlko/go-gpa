@@ -38,10 +38,6 @@ type F struct {
 	Cond      Condition
 }
 
-func (e Entity[entityType]) WithOne(field any) {
-
-}
-
 func (e Entity[entityType]) Get(where string, args ...interface{}) (*entityType, error) {
 	tableName, ok := engine.GetTableName(e.entityObj)
 	if !ok {
@@ -141,6 +137,35 @@ func (e Entity[entityType]) Delete(id int64) error {
 	return nil
 }
 
+func (e Entity[entityType]) Update(entity entityType) error {
+	tableName, ok := engine.GetTableName(e.entityObj)
+	if !ok {
+		return errors.New(fmt.Sprintf("entity %s wasn't configurate ", reflect.TypeOf(e.entityObj)))
+	}
+
+	t := reflect.TypeOf(entity)
+	if kind := t.Kind(); kind != reflect.Struct {
+		log.Panicf("should be struct type, %v instead.", kind)
+	}
+
+	fields, _, _ := getReflectedData(entity)
+	values := make([]string, 0)
+	for _, f := range fields {
+		values = append(values, fmt.Sprintf("%s = :%s", f, f))
+	}
+
+	queryStr := fmt.Sprintf("UPDATE %s SET %v WHERE id = :id", tableName, strings.Join(values, ","))
+
+	stmt, err := engine.DB.PrepareNamed(queryStr)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(entity)
+	return err
+}
+
 func (e Entity[entityType]) Insert(item entityType) (int64, error) {
 	tableName, ok := engine.GetTableName(e.entityObj)
 	if !ok {
@@ -153,7 +178,6 @@ func (e Entity[entityType]) Insert(item entityType) (int64, error) {
 	}
 
 	fields, _, _ := getReflectedData(item)
-
 	queryStr := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING id", tableName, strings.Join(fields, ","), ":"+strings.Join(fields, ", :"))
 
 	stmt, err := engine.DB.PrepareNamed(queryStr)
@@ -187,8 +211,7 @@ func (e Entity[entityType]) Inserts(items []entityType) error {
 		queryArgs = append(queryArgs, "(?)")
 		tmp := make([]interface{}, 0)
 		for _, name := range fieldsNames {
-			v := reflect.ValueOf(i)
-			f := reflect.Indirect(v).FieldByName(name)
+			f := reflect.Indirect(reflect.ValueOf(i)).FieldByName(name)
 			tmp = append(tmp, f.Interface())
 		}
 		rows = append(rows, tmp)
@@ -204,7 +227,7 @@ func (e Entity[entityType]) Inserts(items []entityType) error {
 func getReflectedData(item interface{}) ([]string, []string, []string) {
 	t := reflect.TypeOf(item)
 	if kind := t.Kind(); kind != reflect.Struct {
-		log.Fatalf("This program expects to work on a struct; we got a %v instead.", kind)
+		log.Fatalf("should be structure, got %v instead.", kind)
 	}
 	fieldsDb := make([]string, 0)
 	fieldsNames := make([]string, 0)

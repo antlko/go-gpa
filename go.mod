@@ -1,4 +1,4 @@
-module github.com/antlko/gpa
+module github.com/antlko/go-gpa
 
 go 1.19
 

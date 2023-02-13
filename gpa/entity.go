@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"log"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -14,6 +15,11 @@ type Entity[entityType any] struct {
 }
 
 type Sign string
+
+type Pagination struct {
+	Limit  int64
+	Offset int64
+}
 
 const (
 	Equal     Sign = "="
@@ -38,20 +44,21 @@ type F struct {
 	Cond      Condition
 }
 
-func (e Entity[entityType]) Get(where string, args ...interface{}) (*entityType, error) {
+func (e Entity[entityType]) Get(where string, args ...interface{}) (entityType, error) {
+	entity := e.entityObj.(entityType)
+
 	tableName, ok := engine.GetTableName(e.entityObj)
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("entity %s wasn't configurate ", reflect.TypeOf(e.entityObj)))
+		return entity, errors.New(fmt.Sprintf("entity %s wasn't configurate ", reflect.TypeOf(e.entityObj)))
 	}
 
 	if where != "" {
 		where = " WHERE " + where
 	}
-	entity := e.entityObj.(entityType)
 	if err := engine.DB.Get(&entity, "SELECT * FROM "+tableName+where, args...); err != nil {
-		return nil, err
+		return entity, err
 	}
-	return &entity, nil
+	return entity, nil
 }
 
 func (e Entity[entityType]) Select(where string, args ...interface{}) ([]entityType, error) {
@@ -70,20 +77,20 @@ func (e Entity[entityType]) Select(where string, args ...interface{}) ([]entityT
 	return entity, nil
 }
 
-func (e Entity[entityType]) FindByID(id int64) (*entityType, error) {
+func (e Entity[entityType]) FindByID(id int64) (entityType, error) {
+	entity := e.entityObj.(entityType)
 	tableName, ok := engine.GetTableName(e.entityObj)
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("entity %s wasn't configurate ", reflect.TypeOf(e.entityObj)))
+		return entity, errors.New(fmt.Sprintf("entity %s wasn't configurate ", reflect.TypeOf(e.entityObj)))
 	}
 
-	entity := e.entityObj.(entityType)
 	if err := engine.DB.Get(&entity, "SELECT * FROM "+tableName+" WHERE id = $1", id); err != nil {
-		return nil, err
+		return entity, err
 	}
-	return &entity, nil
+	return entity, nil
 }
 
-func (e Entity[entityType]) FindBy(filters []F) ([]entityType, error) {
+func (e Entity[entityType]) FindBy(filters []F, p *Pagination) ([]entityType, error) {
 	tableName, ok := engine.GetTableName(e.entityObj)
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("entity %s wasn't configurate ", reflect.TypeOf(e.entityObj)))
@@ -101,7 +108,7 @@ func (e Entity[entityType]) FindBy(filters []F) ([]entityType, error) {
 		paramsCounter++
 	}
 
-	query := "SELECT * FROM " + tableName + whereElements
+	query := "SELECT * FROM " + tableName + whereElements + e.getPagQuery(p)
 	entity := make([]entityType, 0)
 	if err := engine.DB.Select(&entity, query, values...); err != nil {
 		return nil, err
@@ -109,14 +116,25 @@ func (e Entity[entityType]) FindBy(filters []F) ([]entityType, error) {
 	return entity, nil
 }
 
-func (e Entity[entityType]) FindAll() ([]entityType, error) {
+func (e Entity[entityType]) getPagQuery(p *Pagination) string {
+	var pagQuery = ""
+	if p != nil && p.Limit != 0 {
+		pagQuery += " LIMIT " + strconv.FormatInt(p.Limit, 10)
+	}
+	if p != nil && p.Limit != 0 {
+		pagQuery += " OFFSET " + strconv.FormatInt(p.Offset, 10)
+	}
+	return pagQuery
+}
+
+func (e Entity[entityType]) FindAll(p *Pagination) ([]entityType, error) {
 	tableName, ok := engine.GetTableName(e.entityObj)
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("entity %s wasn't configurate ", reflect.TypeOf(e.entityObj)))
 	}
 
 	var entities []entityType
-	if err := engine.DB.Select(&entities, "SELECT * FROM "+tableName); err != nil {
+	if err := engine.DB.Select(&entities, "SELECT * FROM "+tableName+e.getPagQuery(p)); err != nil {
 		return nil, err
 	}
 	return entities, nil

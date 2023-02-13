@@ -3,8 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/antlko/gpa/db"
-	"github.com/antlko/gpa/gpa"
+	"github.com/antlko/go-gpa/db"
+	"github.com/antlko/go-gpa/gpa"
 	"github.com/jmoiron/sqlx"
 )
 

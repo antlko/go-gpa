@@ -98,7 +98,7 @@ func main() {
 	}
 
 	// Find all Data from DB
-	users, err := gpa.From[User]().FindAll()
+	users, err := gpa.From[User]().FindAll(nil)
 	if err != nil && err != sql.ErrNoRows {
 		panic(err)
 	}
@@ -122,7 +122,7 @@ func main() {
 	docs, err := gpa.From[Document]().FindBy([]gpa.F{
 		{FieldName: "title", Sign: gpa.Equal, Value: "doc1", Cond: gpa.OR},
 		{FieldName: "views", Sign: gpa.More, Value: 10},
-	})
+	}, nil)
 	if err != nil {
 		panic(err)
 	}

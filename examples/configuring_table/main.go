@@ -82,7 +82,7 @@ func main() {
 	defer destroy()
 
 	// Save data to DB
-	id, err := gpa.From[User]().Insert(User{
+	err := gpa.From[User]().Insert(User{
 		Name: "John",
 	})
 	if err != nil {
@@ -91,7 +91,7 @@ func main() {
 
 	// Update entity
 	if err := gpa.From[User]().Update(User{
-		ID:   id,
+		ID:   1,
 		Name: "Doe",
 	}); err != nil {
 		panic(err)
@@ -105,7 +105,7 @@ func main() {
 	fmt.Println(len(users))
 
 	// Find Data from DB by ID
-	user, err := gpa.From[User]().FindByID(id)
+	user, err := gpa.From[User]().FindByID(1)
 	if err != nil && err != sql.ErrNoRows {
 		panic(err)
 	}

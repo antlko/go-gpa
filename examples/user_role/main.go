@@ -44,7 +44,7 @@ type UserRole struct {
 	User interface{} `db:"user_id" join:"users" mappedBy:"id"`
 }
 
-// GPAConfigure method where should be provided configs for GPAEntity
+// GPAConfigure method where could be provided configs for GPAEntity, for ex. custom table name
 func (d UserRole) GPAConfigure(o *gpa.Engine) {
 	o.SetTableName(d, "user_roles")
 }

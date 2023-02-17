@@ -21,14 +21,11 @@ type User struct {
 	Roles *[]Role `join:"user_roles" fetchBy:"role_id" mappedBy:"user_id" fetch:"lazy"`
 }
 
-func (u User) GetRoles() []Role {
-	if u.Roles != nil {
-		return *u.Roles
-	}
-	return []Role{}
+func (u User) String() string {
+	return fmt.Sprintf("{%d %s %+v}\n", u.ID, u.Name, u.GetRoles())
 }
 
-func (u User) GetTypes() []Role {
+func (u User) GetRoles() []Role {
 	if u.Roles != nil {
 		return *u.Roles
 	}
@@ -52,22 +49,10 @@ func (d UserRole) GPAConfigure(o *gpa.Engine) {
 	o.SetTableName(d, "user_roles")
 }
 
-type UserType struct {
-	ID          int64  `db:"id"`
-	IsAvailable bool   `db:"is_available"`
-	TypeName    string `db:"type_name"`
-}
-
-// GPAConfigure method where should be provided configs for GPAEntity
-func (d UserType) GPAConfigure(o *gpa.Engine) {
-	o.SetTableName(d, "user_types")
-}
-
 func destroy() {
 	DB := db.NewPGInstance(db.PGConfig{Host: host, Port: port, User: user, Password: password, DBName: dbname})
 	if _, err := DB.Exec(`
 	 DROP TABLE IF EXISTS user_roles;
-	 DROP TABLE IF EXISTS user_types;
 	 DROP TABLE IF EXISTS roles;
 	 DROP TABLE IF EXISTS users;
 	`); err != nil {
@@ -85,10 +70,9 @@ func main() {
 	var err error
 
 	gpa.From[UserRole]()
-	gpa.From[UserType]()
 	gpa.From[Role]()
 
-	err = gpa.From[User]().Inserts([]User{{Name: "Ann"}, {Name: "San"}})
+	err = gpa.From[User]().Inserts([]User{{Name: "Ann"}, {Name: "San"}, {Name: "Vi"}})
 	if err != nil {
 		panic(err)
 	}
@@ -106,10 +90,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	roleUser, err := gpa.From[Role]().FindOneBy([]gpa.F{{FieldName: "name", Sign: gpa.Equal, Value: "USER"}}, nil)
+	if err != nil {
+		panic(err)
+	}
 
 	err = gpa.From[UserRole]().Insert(UserRole{
 		Role: roleAdmin.ID,
 		User: 1,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = gpa.From[UserRole]().Inserts([]UserRole{
+		{Role: roleAdmin.ID, User: 3},
+		{Role: roleUser.ID, User: 3},
 	})
 	if err != nil {
 		panic(err)
@@ -120,4 +116,10 @@ func main() {
 		panic(err)
 	}
 	println(fmt.Sprintf("%+v", userWithRoles.GetRoles()))
+
+	usersWithRoles, err := gpa.From[User]().FindAll(nil)
+	if err != nil {
+		panic(err)
+	}
+	println(fmt.Sprintf("%+v\n", usersWithRoles))
 }

@@ -1,5 +1,5 @@
 <h1>go-gpa</h1>
-<h3>Golang Persistence API</h3>
+<h3>GPA - Golang Persistence API / Golang ORM / Golang Database / Generics </h3>
 
 <h3>Working with:</h3><h4>Postgres</h2>
 

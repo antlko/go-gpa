@@ -93,9 +93,6 @@ docs, err := gpa.From[Document]().FindBy([]gpa.F{
 
 // Find One By custom filter
 roleAdmin, err := gpa.From[Role]().FindOneBy([]gpa.F{{FieldName: "name", Sign: gpa.Equal, Value: "ADMIN"}}, nil)
-    if err != nil {
-    panic(err)
-}
 
 // Custom selecting with sqlx
 _, err := gpa.From[Document]().Select("title = $1", "hellotext")
@@ -105,6 +102,10 @@ _, err := gpa.From[Document]().Get("views >= $1", 10)
 
 // Remove Data from DB
 err := gpa.From[User]().Delete(user.ID);
+
+// Get Lazy User with Roles
+userWithRoles, err := gpa.From[User]().FindByID(1)
+userWithRoles.GetRoles()
 ```
 
 

@@ -34,11 +34,11 @@ func NewPGInstance(cfg PGConfig) *sqlx.DB {
 
 	idle, _ := strconv.Atoi(os.Getenv("DB_MAX_IDLE_CONNS"))
 	if idle == 0 {
-		idle = 2
+		idle = 1
 	}
 	open, _ := strconv.Atoi(os.Getenv("DB_MAX_OPEN_CONNS"))
 	if open == 0 {
-		open = 2
+		open = 1
 	}
 
 	db := stdlib.OpenDB(*config)

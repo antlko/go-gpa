@@ -4,6 +4,10 @@ import "github.com/jmoiron/sqlx"
 
 var engine *Engine
 
+type Config struct {
+	IsLazy bool
+}
+
 type DbProviderI interface {
 	sqlx.Ext
 	sqlx.Preparer
@@ -17,6 +21,7 @@ type Engine struct {
 	tableNameEntityMap map[string]any
 	db                 *sqlx.DB
 	t                  *sqlx.Tx
+	cfg                Config
 }
 
 func (e *Engine) GetInstance() DbProviderI {
@@ -41,10 +46,11 @@ func (e *Engine) GetEntity(tableName string) (any, bool) {
 	return val, ok
 }
 
-func NewEngine(db *sqlx.DB) {
+func NewEngine(db *sqlx.DB, cfg Config) {
 	engine = &Engine{
 		entityTableNameMap: make(map[any]string, 0),
 		tableNameEntityMap: make(map[string]any, 0),
 		db:                 db,
+		cfg:                cfg,
 	}
 }

@@ -167,6 +167,10 @@ func getReflectedData(item interface{}, withId bool) MetaDataList {
 }
 
 func (e *Entity[entityType]) withLazies(entities []entityType) ([]entityType, error) {
+	if !engine.cfg.IsLazy {
+		return entities, nil
+	}
+
 	lzs := make([]entityType, 0)
 	for i := 0; i < len(entities); i++ {
 		lz, err := e.withsLazy(entities[i])
@@ -179,6 +183,10 @@ func (e *Entity[entityType]) withLazies(entities []entityType) ([]entityType, er
 }
 
 func (e *Entity[entityType]) withsLazy(entity entityType) (entityType, error) {
+	if !engine.cfg.IsLazy {
+		return entity, nil
+	}
+
 	lazyEntities := getLazyEntitiesMetaData(entity)
 	for i := 0; i < len(lazyEntities); i++ {
 		lazyEntityMeta := lazyEntities[i]

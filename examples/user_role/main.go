@@ -66,7 +66,7 @@ func main() {
 	DB := db.NewPGInstance(db.PGConfig{Host: host, Port: port, User: user, Password: password, DBName: dbname})
 
 	// Global initialization go-gpa Engine
-	gpa.NewEngine(DB)
+	gpa.NewEngine(DB, gpa.Config{IsLazy: true})
 	var err error
 
 	gpa.From[UserRole]()

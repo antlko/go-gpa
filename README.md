@@ -14,50 +14,60 @@ will initialize table automatically.
 <h3>Usage:</h3>
 
 Entity initializations:
+
 ```go
+
+// mappedBy - field ID in the table to which joining
+// fetchBy - field ID which should be joined with Role entity table (roles); 
+//      field ID from structure table
+// join - table name to which should be joined mappedBy ID
+//
 // User GPA entity
 type User struct {
-    ID    int64   `db:"id"`
-    Name  string  `db:"name"`
-    Roles *[]Role `join:"user_roles" fetchBy:"role_id" mappedBy:"user_id" fetch:"lazy"`
+ID    int64   `db:"id"`
+Name  string  `db:"name"`
+Roles *[]Role `join:"user_roles" fetchBy:"role_id" mappedBy:"user_id" fetch:"lazy"`
 }
 
 func (u User) String() string {
-    return fmt.Sprintf("{%d %s %+v}\n", u.ID, u.Name, u.GetRoles())
+return fmt.Sprintf("{%d %s %+v}\n", u.ID, u.Name, u.GetRoles())
 }
 
 func (u User) GetRoles() []Role {
-    if u.Roles != nil {
-        return *u.Roles
-    }
-    return []Role{}
+if u.Roles != nil {
+return *u.Roles
+}
+return []Role{}
 }
 
 // Role GPA entity
 type Role struct {
-    ID   int64  `db:"id"`
-    Name string `db:"name"`
+ID   int64  `db:"id"`
+Name string `db:"name"`
 }
 
 // UserRole GPA entity
 type UserRole struct {
-    Role interface{} `db:"role_id" join:"roles" mappedBy:"id" fetch:"lazy"`
-    User interface{} `db:"user_id" join:"users" mappedBy:"id"`
+Role interface{} `db:"role_id" join:"roles" mappedBy:"id" fetch:"lazy"`
+User interface{} `db:"user_id" join:"users" mappedBy:"id"`
 }
 
 // GPAConfigure method where could be provided configs for GPAEntity, for ex. custom table name
 func (d UserRole) GPAConfigure(o *gpa.Engine) {
-    o.SetTableName(d, "user_roles")
+o.SetTableName(d, "user_roles")
 }
 ```
 
 ORM initialization:
+
 ```
 // Global initialization go-gpa Engine
-gpa.NewEngine(DB)
+cfg := gpa.Config{IsLazy: false}
+gpa.NewEngine(DB, cfg)
 
 // If used lazy fetch type, 
 // structures should be initialized manually
+// cfg := gpa.Config{IsLazy: true}
 // gpa.From[UserRole]()
 // gpa.From[Role]()
 ```
@@ -67,7 +77,7 @@ Api examples:
 ```go
 // Save data to DB
 err := gpa.From[User]().Insert(User{
-    Name: "John",
+Name: "John",
 })
 
 // Update data in DB
@@ -81,14 +91,14 @@ user, err := gpa.From[User]().FindByID(id)
 
 // Insert array of data
 err := gpa.From[Document]().Inserts([]Document{
-    {Text: "doc1", Title: "some text", Views: 11},
-    {Text: "doc2", Title: "some text 2", Views: 67},
+{Text: "doc1", Title: "some text", Views: 11},
+{Text: "doc2", Title: "some text 2", Views: 67},
 });
 
 // Finding by conditions with filters
 docs, err := gpa.From[Document]().FindBy([]gpa.F{
-    {FieldName: "title", Sign: gpa.Equal, Value: "doc1", Cond: gpa.OR},
-    {FieldName: "views", Sign: gpa.More, Value: 10},
+{FieldName: "title", Sign: gpa.Equal, Value: "doc1", Cond: gpa.OR},
+{FieldName: "views", Sign: gpa.More, Value: 10},
 }, nil)
 
 // Find One By custom filter

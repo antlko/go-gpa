@@ -52,7 +52,7 @@ func init() {
 	DB = db.NewPGInstance(db.PGConfig{Host: host, Port: port, User: user, Password: password, DBName: dbname})
 
 	// Global initialization go-gpa Engine
-	gpa.NewEngine(DB)
+	gpa.NewEngine(DB, gpa.Config{IsLazy: false})
 
 	// Set up testing data
 	if _, err := DB.Exec(`
